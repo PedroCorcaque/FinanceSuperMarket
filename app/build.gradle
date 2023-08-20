@@ -47,8 +47,12 @@ dependencies {
 
     implementation 'com.journeyapps:zxing-android-embedded:4.3.0'
     implementation 'com.google.zxing:core:3.4.1'
+
+    implementation "org.jsoup:jsoup:1.15.3"
+
 }
 
 configurations.implementation {
     exclude group: 'org.jetbrains.kotlin', module: 'kotlin-stdlib-jdk8'
+
 }

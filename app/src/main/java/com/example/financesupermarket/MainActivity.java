@@ -1,12 +1,9 @@
 package com.example.financesupermarket;
 
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
 import android.view.View;
 import android.view.Menu;
 import android.widget.Button;
-import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
@@ -25,6 +22,7 @@ import com.journeyapps.barcodescanner.ScanOptions;
 
 public class MainActivity extends AppCompatActivity {
 
+    public String urlFromCode = "";
     Button btnScan;
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
@@ -71,13 +69,12 @@ public class MainActivity extends AppCompatActivity {
 
     ActivityResultLauncher<ScanOptions> barLauncher = registerForActivityResult(new ScanContract(), result -> {
         if (result.getContents() != null) {
-            alert(result.getContents());
+            urlFromCode = result.getContents().replace("|", "%7C");
+
+            AsyncTaskRunner runner = new AsyncTaskRunner();
+            runner.execute(urlFromCode);
         }
     });
-
-    private void alert(String msg) {
-        Toast.makeText(getApplicationContext(), msg, Toast.LENGTH_LONG).show();
-    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
