@@ -1,14 +1,20 @@
 package com.example.financesupermarket;
 
+import android.content.Context;
+import android.content.DialogInterface;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.View;
 import android.view.Menu;
 import android.widget.Button;
+import android.widget.Toast;
 
 import com.google.android.material.snackbar.Snackbar;
 import com.google.android.material.navigation.NavigationView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.appcompat.app.AlertDialog;
 import androidx.navigation.NavController;
 import androidx.navigation.Navigation;
 import androidx.navigation.ui.AppBarConfiguration;
@@ -20,9 +26,20 @@ import com.example.financesupermarket.databinding.ActivityMainBinding;
 import com.journeyapps.barcodescanner.ScanContract;
 import com.journeyapps.barcodescanner.ScanOptions;
 
+import org.json.JSONObject;
+
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.io.Writer;
+import java.util.List;
+import java.util.concurrent.ExecutionException;
+
 public class MainActivity extends AppCompatActivity {
 
     public String urlFromCode = "";
+    private Context context;
+    private List<String> resp;
     Button btnScan;
     private AppBarConfiguration mAppBarConfiguration;
     private ActivityMainBinding binding;
@@ -58,11 +75,42 @@ public class MainActivity extends AppCompatActivity {
         btnScan.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                ScanOptions scanOptions = new ScanOptions();
-                scanOptions.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
-                scanOptions.setPrompt("Camera Scan");
-                scanOptions.setCameraId(0);
-                barLauncher.launch(scanOptions);
+//                ScanOptions scanOptions = new ScanOptions();
+//                scanOptions.setDesiredBarcodeFormats(ScanOptions.QR_CODE);
+//                scanOptions.setPrompt("Camera Scan");
+//                scanOptions.setCameraId(0);
+//                barLauncher.launch(scanOptions);
+                  AsyncTaskRunner runner = new AsyncTaskRunner();
+                    runner.execute(urlFromCode);
+                    try {
+                        resp = runner.get();
+
+                        String baseDir = Environment.getExternalStorageDirectory().getAbsolutePath();
+                        System.out.println(baseDir);
+                        String fileName = "products.json";
+                        String filePath = baseDir + File.separator + fileName;
+
+                        try {
+                            File jsonFile = new File(filePath);
+                            Writer jsonFileWriter = new BufferedWriter(new FileWriter(jsonFile));
+                            JSONObject jsonObject = new JSONObject();
+
+                            for (String product : resp) {
+                                jsonObject.accumulate("products", product);
+                                System.out.println("Writing data...");
+                            }
+                            jsonFileWriter.write(jsonObject.toString());
+                            System.out.println("done");
+
+                            jsonFileWriter.close();
+                        } catch (Exception e) {
+                            throw new RuntimeException(e);
+                        }
+                    } catch (ExecutionException e) {
+                        throw new RuntimeException(e);
+                    } catch (InterruptedException e) {
+                        throw new RuntimeException(e);
+                    }      
             }
         });
     }
@@ -73,6 +121,14 @@ public class MainActivity extends AppCompatActivity {
 
             AsyncTaskRunner runner = new AsyncTaskRunner();
             runner.execute(urlFromCode);
+            try {
+                this.resp = runner.get();
+
+            } catch (ExecutionException e) {
+                throw new RuntimeException(e);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
     });
 
